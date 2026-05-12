@@ -118,6 +118,9 @@ function renderFlorra() {
         </div>
         <div class="chat-input-group">
           <input type="text" class="chat-input" id="chat-input" placeholder="Ask Florra about farming...">
+          <button class="mic-btn" onclick="startVoice()" type="button">
+            <i class="ti ti-microphone"></i>
+          </button>
           <button class="chat-send-btn" onclick="sendMessage()">Send</button>
         </div>
       </div>
@@ -153,6 +156,44 @@ function sendMessage() {
     const messages = document.getElementById('chat-messages');
     messages.scrollTop = messages.scrollHeight;
   }, 50);
+}
+
+function startVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Speech recognition not supported in this browser');
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.value = transcript;
+      input.focus();
+    }
+  };
+
+  recognition.onerror = (event) => {
+    if (event.error === 'aborted') return;
+    alert('Voice error: ' + (event.error || 'unknown error'));
+  };
+
+  recognition.onend = () => {
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+  };
+
+  try {
+    recognition.start();
+  } catch (err) {
+    alert('Voice error: ' + (err.message || 'failed to start'));    
+  }
 }
 
 function getAIResponse(userMessage) {

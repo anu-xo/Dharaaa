@@ -165,14 +165,23 @@ function renderFlorra() {
         <span class="quick-chip" onclick="sendQuick('What is the best organic fertilizer for wheat?')">🌿 Fertilizer advice</span>
       </div>
 
-      <div class="chat-input-row">
-        <div class="chat-input-wrap">
-          <i class="ti ti-message-circle"></i>
-          <input type="text" id="chat-input" placeholder="Ask Florra anything about your farm..." onkeydown="if(event.key==='Enter')sendChat()"/>
-        </div>
-        <button class="send-btn" id="send-btn" onclick="sendChat()"><i class="ti ti-send"></i></button>
-      </div>
-    </div>
+     <div class="chat-input-row">
+  <div class="chat-input-wrap">
+    <i class="ti ti-message-circle"></i>
+    <input
+      type="text"
+      id="chat-input"
+      placeholder="Ask Florra anything about your farm..."
+      onkeydown="if(event.key==='Enter')sendChat()"
+    />
+  </div>
+  <button class="mic-btn" onclick="startVoice()">
+    <i class="ti ti-microphone"></i>
+  </button>
+  <button class="send-btn" id="send-btn" onclick="sendChat()">
+    <i class="ti ti-send"></i>
+  </button>
+</div> 
   `;
   renderMessages();
 }
@@ -196,34 +205,7 @@ function sendQuick(q) {
   document.getElementById('chat-input').value = q;
   sendChat();
 }
-const response = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: `You are Florra, an AI agriculture assistant for Dharaa — a sustainable farming platform in India.
-              
-Farmer message: ${text}`
-            },
-          ],
-        },
-      ],
-    }),
-  }
-);
 
-const data = await response.json();
-
-const reply =
-  data.candidates?.[0]?.content?.parts?.[0]?.text ||
-  "Sorry, I couldn't process that.";
 async function sendChat() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
@@ -235,8 +217,35 @@ async function sendChat() {
   renderMessages();
   document.getElementById('send-btn').disabled = true;
   try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are Florra, an AI agriculture assistant for Dharaa — a sustainable farming platform in India. Speak in simple Hinglish understandable to Indian farmers.
+Use friendly and practical language.
+              
+Farmer message: ${text}`
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
 
-    const reply = data.content?.[0]?.text || 'Sorry, something went wrong. Please try again.';
+    const data = await response.json();
+
+    const reply =
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Sorry, I couldn't process that.";
     isTyping = false;
     chatMessages.push({ role: 'bot', text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
   } catch (e) {
@@ -245,6 +254,31 @@ async function sendChat() {
   }
   renderMessages();
   if (document.getElementById('send-btn')) document.getElementById('send-btn').disabled = false;
+}
+
+function startVoice() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Speech recognition not supported in this browser");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-IN";
+  recognition.interimResults = false;
+
+  recognition.start();
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    document.getElementById("chat-input").value = transcript;
+  };
+
+  recognition.onerror = (event) => {
+    alert("Voice error: " + event.error);
+  };
 }
 
 function renderVerify() {

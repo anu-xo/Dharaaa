@@ -451,20 +451,41 @@ nav {
   border-color: var(--primary);
 }
 
-.chat-send-btn {
-  padding: 12px 20px;
-  background: var(--primary);
-  color: white;
+.chat-send-btn,
+.mic-btn {
+  min-width: 52px;
+  height: 46px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
   font-family: 'DM Sans', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-send-btn {
+  background: var(--primary);
+  color: white;
+  padding: 0 18px;
 }
 
 .chat-send-btn:hover {
   background: var(--primary-dark);
+}
+
+.mic-btn {
+  background: var(--bg-primary);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  padding: 0;
+}
+
+.mic-btn:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
 }
 
 /* ===== VERIFY PAGE ===== */
