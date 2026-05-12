@@ -1,3 +1,4 @@
+const API_KEY = "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";
 const pages = { dashboard: renderDashboard, florra: renderFlorra, verify: renderVerify, leaderboard: renderLeaderboard };
 let currentPage = 'dashboard';
 let chatMessages = [
@@ -195,7 +196,34 @@ function sendQuick(q) {
   document.getElementById('chat-input').value = q;
   sendChat();
 }
+const response = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
+              text: `You are Florra, an AI agriculture assistant for Dharaa — a sustainable farming platform in India.
+              
+Farmer message: ${text}`
+            },
+          ],
+        },
+      ],
+    }),
+  }
+);
 
+const data = await response.json();
+
+const reply =
+  data.candidates?.[0]?.content?.parts?.[0]?.text ||
+  "Sorry, I couldn't process that.";
 async function sendChat() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
@@ -207,19 +235,7 @@ async function sendChat() {
   renderMessages();
   document.getElementById('send-btn').disabled = true;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `You are Florra, an AI agriculture assistant for Dharaa — a sustainable farming platform in India. The farmer is Ravi Kumar from Indore, Madhya Pradesh, India. He grows wheat and soybean.
 
-Give practical, localized, concise advice in clear English. Keep responses 3-5 sentences. Focus on sustainability, water efficiency, and crop health. Be warm, encouraging, and use language a farmer can easily understand. Add relevant emojis. Address him as "Ravi" occasionally.`,
-        messages: chatMessages.filter(m => m.role === 'user').map(m => ({ role: 'user', content: m.text }))
-      })
-    });
-    const data = await res.json();
     const reply = data.content?.[0]?.text || 'Sorry, something went wrong. Please try again.';
     isTyping = false;
     chatMessages.push({ role: 'bot', text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
